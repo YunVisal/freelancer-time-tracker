@@ -44,7 +44,9 @@ const Checkin = () => {
         <h2 className="lg:text-3xl text-2xl text-primary font-bold text-center">{renderGreetingText()}</h2>
         <h3 className="text-lg text-secondary text-center">{format(currentDateTime, "dd/MM/yyyy hh:mm")}</h3>
         <form className="lg:w-1/4 w-1/2 mx-auto my-4" onSubmit={clockIn}>
-            <PrimaryActionButton label={"Clock in"} isButton={false} />
+            <PrimaryActionButton isButton={false}>
+                <p className="p-2 text-lg font-bold lg:p-3 lg:text-xl">Clock in</p>
+            </PrimaryActionButton>
         </form>
     </section>
 }
