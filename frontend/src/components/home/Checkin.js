@@ -1,10 +1,16 @@
 import React, {useCallback, useEffect, useState} from "react";
 import { format } from "date-fns";
+import api from "config/axiosConfig";
 
 import PrimaryActionButton from "components/reuseable/PrimaryActionButton";
 
 const Checkin = () => {
     const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+    const test = async () => {
+        const res = await api.get("/lock");
+        console.log(res);
+    }
 
     const refreshTime = () => {
         setInterval(() => {
@@ -30,6 +36,7 @@ const Checkin = () => {
     const clockIn = (e) => {
         e.preventDefault();
         console.log("Clock in");
+        test();
     } 
 
     useEffect(() => {

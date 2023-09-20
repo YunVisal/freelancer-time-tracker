@@ -1,11 +1,11 @@
 import React, {useEffect} from "react";
-import axios from "axios";
+
+import { refreshAccessToken } from "utilities/token";
 
 const LoginCallback = () => {
     const refreshToken = async () => {
         try {
-            const res = await axios.get("http://localhost:3001/refresh", {withCredentials: true});
-            localStorage.setItem("accessToken", res.data.accessToken);
+            await refreshAccessToken();
             window.location.replace("/");
         } catch(e){
             window.location.replace("/login?error=true");
