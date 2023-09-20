@@ -3,6 +3,19 @@ const jwt = require("jsonwebtoken");
 const {UserToken} = require("../models");
 
 module.exports = app => {
+    app.get("/verify", async (req, res) => {
+        const cookies = req.cookies;
+        if (!cookies?.jwt) return res.sendStatus(401);
+        jwt.verify(
+            cookies?.jwt,
+            process.env.REFRESH_TOKEN_SECRET,
+            (err) => {
+                if(err) return res.sendStatus(400);
+                res.sendStatus(200);
+            }
+        )
+    });
+    
     app.get("/refresh", async (req, res) => {
         const cookies = req.cookies;
         if (!cookies?.jwt) return res.sendStatus(401);
@@ -20,7 +33,7 @@ module.exports = app => {
                     process.env.ACCESS_TOKEN_SECRET,
                     { expiresIn: '1m' }
                 );
-                res.status(200).json({ accessToken })
+                res.status(200).json({ accessToken });
             }
         )
     });
