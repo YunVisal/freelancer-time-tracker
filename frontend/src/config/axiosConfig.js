@@ -1,6 +1,6 @@
 import axios from "axios";
 import { apiBaseUrl } from "config";
-import { getAccessToken, refreshAccessToken } from "utilities/token";
+import { getAccessToken, refreshAccessToken, verifyRefreshToken } from "utilities/token";
 
 const api = axios.create({
     baseURL: apiBaseUrl,
@@ -27,6 +27,7 @@ api.interceptors.response.use(
         if (error.response.status === 401 && !originalRequest._retry) {
             try {
                 originalRequest._retry = true;
+                await verifyRefreshToken();
                 await refreshAccessToken();
                 return api(originalRequest);
             } catch (e) {
