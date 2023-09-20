@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const {UserToken} = require("../models");
 
 module.exports = app => {
-    app.post("/verify", async (req, res) => {
+    app.get("/verify", async (req, res) => {
         const cookies = req.cookies;
         if (!cookies?.jwt) return res.sendStatus(401);
         jwt.verify(
