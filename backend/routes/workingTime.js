@@ -9,10 +9,10 @@ module.exports = app => {
 
         const existingWorkingTime = await WorkingTime.findOne({where: {userId, isWorking: true}});
         if(existingWorkingTime){
-            res.status(200).json({message: "Success", data: {isWorking: true, id: existingWorkingTime.dataValues.id}});
+            res.status(200).json({message: "Success", data: {isWorking: true, id: existingWorkingTime.dataValues.id, checkInTime: existingWorkingTime.dataValues.clockInTime}});
         }
         else {
-            res.status(200).json({message: "Success", data: {isWorking: false, id: -1}});
+            res.status(200).json({message: "Success", data: {isWorking: false, id: -1, checkInTime: null}});
         }
     });
 
