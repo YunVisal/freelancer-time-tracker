@@ -1,60 +1,88 @@
 import React, {useCallback, useEffect, useState} from "react";
-import { format } from "date-fns";
-import api from "config/axiosConfig";
 
+import api from "config/axiosConfig";
+import WelcomeText from "./WelcomeText";
+import CheckoutDialogBody from "./CheckoutDialogBody";
+import MessageDialog from "components/reuseable/MessageDialog";
 import PrimaryActionButton from "components/reuseable/PrimaryActionButton";
+import SecondaryActionButton from "components/reuseable/SecondaryActionButton";
 
 const Checkin = () => {
-    const [currentDateTime, setCurrentDateTime] = useState(new Date());
+    const [sessionId, setSessionId] = useState(-1);
+    const [checkinTime, setCheckinTime] = useState(null);
+    const [checkoutTime, setCheckoutTime] = useState(null);
+    const [totalWorkingTime, setTotalWorkingTime] = useState("");
+    const [isCheckoutClicked, setIsCheckoutClicked] = useState(false);
 
-    const test = async () => {
-        const res = await api.get("/lock");
-        console.log(res);
+    const checkForCurrentSession = async () => {
+        try {
+            const res = await api.get("/workingStatus");
+            setSessionId(res.data.data.id);
+            setCheckinTime(new Date(res.data.data.checkInTime))
+        }catch(e) {}
     }
+    const callCheckForCurrentSession = useCallback(checkForCurrentSession, []);
 
-    const refreshTime = () => {
-        setInterval(() => {
-            setCurrentDateTime(new Date());
-        }, 10000);
-    }
-    const callRefreshTime = useCallback(refreshTime, [refreshTime]);
-
-    const renderGreetingText = () => {
-        const currentHour = currentDateTime.getHours();
-
-        if(currentHour >= 3 || currentDateTime < 12){
-            return "Good Morning!";
-        }
-        else if(currentHour >= 12 || currentDateTime < 18){
-            return "Good Afternoon!";
+    const handleCheckIn = async (e) => {
+        e.preventDefault();
+        if(sessionId === -1){
+            const date = new Date();
+            const body = {
+                checkInTime: date.toISOString()
+            };
+            const res = await api.post("/checkin", body);
+            setSessionId(res.data.data.id);
         }
         else {
-            return "Good Evening!";
+            const date = new Date();
+            const timeDifferences = date - checkinTime;
+            const hours = Math.floor(timeDifferences / (1000 * 60 * 60)).toString().padStart(2, '0');
+            const minutes = Math.floor((timeDifferences % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            const seconds = Math.floor((timeDifferences % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            const totalHourString = `${hours}:${minutes}:${seconds}`;
+            setCheckoutTime(date);
+            setTotalWorkingTime(totalHourString);
+            setIsCheckoutClicked(true);
         }
-    }
-
-    const clockIn = (e) => {
-        e.preventDefault();
-        console.log("Clock in");
-        test();
     } 
 
-    useEffect(() => {
-        callRefreshTime();
+    const handleCheckOut = async () => {
+        setIsCheckoutClicked(false);
+        const body = {
+            id: sessionId,
+            checkOutTime: checkoutTime.toISOString()
+        };
+        await api.post("/checkout", body);
+        setSessionId(-1);
+        setCheckinTime(null);
+    }
 
-        return () => {
-            clearInterval();
-        }
-    }, [callRefreshTime])
+    const closeDialog = () => {
+        setIsCheckoutClicked(false);
+    }
+
+    useEffect(() => {
+        callCheckForCurrentSession();
+    }, [callCheckForCurrentSession]);
 
     return <section className="lg:w-1/2 w-full m-auto">
-        <h2 className="lg:text-3xl text-2xl text-primary font-bold text-center">{renderGreetingText()}</h2>
-        <h3 className="text-lg text-secondary text-center">{format(currentDateTime, "dd/MM/yyyy hh:mm")}</h3>
-        <form className="lg:w-1/4 w-1/2 mx-auto my-4" onSubmit={clockIn}>
-            <PrimaryActionButton isButton={false}>
+        <WelcomeText />
+        <form className="lg:w-1/4 w-1/2 mx-auto my-4" onSubmit={handleCheckIn}>
+            {sessionId === -1 ? <PrimaryActionButton isButton={false}>
                 <p className="p-2 text-lg font-bold lg:p-3 lg:text-xl">Clock in</p>
             </PrimaryActionButton>
+            : <SecondaryActionButton isButton={false}>
+                <p className="p-2 text-lg font-bold lg:p-3 lg:text-xl">Clock out</p>
+            </SecondaryActionButton>}
         </form>
+        <MessageDialog isOpen={isCheckoutClicked}>
+            <CheckoutDialogBody
+                checkoutTime={checkoutTime}
+                totalWorkingHour={totalWorkingTime}
+                handleCloseDialog={closeDialog}
+                handleClockout={handleCheckOut}
+            />
+        </MessageDialog>
     </section>
 }
 
