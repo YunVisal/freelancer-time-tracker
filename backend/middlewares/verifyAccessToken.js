@@ -10,7 +10,7 @@ const verifyAccessToken = (req, res, next) => {
         process.env.ACCESS_TOKEN_SECRET,
         (err, decoded) => {
             if (err) return res.sendStatus(401); //invalid token
-            req.user = decoded.userId;
+            req.user = parseInt(decoded.userId);
             next();
         }
     );

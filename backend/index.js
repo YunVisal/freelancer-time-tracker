@@ -4,7 +4,6 @@ const cookieParser = require('cookie-parser');
 
 const credentials = require('./middlewares/credentials');
 const corsOptions = require('./config/corsOptions');
-const verifyAccessToken = require("./middlewares/verifyAccessToken");
 require('./services/passport');
 
 require('dotenv').config();
@@ -25,10 +24,7 @@ app.get("/", (req, res) => {
 
 require('./routes/auth')(app);
 require('./routes/token')(app);
-
-app.get("/lock", verifyAccessToken, (req, res) => {
-    res.json({userId: req.user});
-});
+require('./routes/workingTime')(app);
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
